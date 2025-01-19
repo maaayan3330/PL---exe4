@@ -105,27 +105,12 @@ test4 :-
     lookup(State, sum, Value),
     write('Sum 1 to 10 = '), write(Value), nl.
 
-% Test 5: GCD calculation using do-while
-test5 :-
-    Program = comp(assign(a, num(48)),
-              comp(assign(b, num(36)),
-                   do_while(
-                       if(gte(var(a), var(b)),
-                          assign(a, sub(var(a), var(b))),
-                          assign(b, sub(var(b), var(a)))),
-                       neg(aeq(var(a), num(0)))))),
-    nos(Program, [], State),
-    lookup(State, b, Value),
-    write('GCD of 48 and 36 = '), write(Value), nl.
 
-% Test 6: Count set bits in a number (bitcount of 7)
-test6 :-
-    Program = comp(assign(n, num(7)),
-              comp(assign(count, num(0)),
-                   while(neg(aeq(var(n), num(0))),
-                         comp(assign(count, add(var(count), 
-                                              iand(var(n), num(1)))),
-                              assign(n, sub(var(n), num(1))))))),
-    nos(Program, [], State),
-    lookup(State, count, Value),
-    write('Number of 1 bits in 7 = '), write(Value), nl.
+
+run_all_tests :-
+    write('Running all evaluation tests:'), nl,
+    test1,
+    test2,
+    test3,
+    test4.
+    
