@@ -62,7 +62,7 @@ nos(assign(X, E), State, NewState) :-
     eval_aexp(E, State, V),
     update(X, V, State, NewState).
 % please complete nos
-nos(comp(s1, s2), State, NewState) :- nos(s1, State, midState), nos(s2, midState, NewState).
+nos(comp(S1, S2), State, NewState) :-nos(S1, State, MidState), nos(S2, MidState, NewState).
 nos(if(B, stm1, stm2), State, NewState) :- eval_bexp(B, State, Result),
     (Result = true -> nos(stm1, State, NewState) ; nos(stm2, State, NewState)).
 nos(while(B, stm1), State, NewState) :- eval_bexp(B, State, true), nos(stm1, State, midState), 
