@@ -5,6 +5,7 @@ aexp(var(X)) :- atom(X).
 aexp(add(E1, E2)) :- aexp(E1), aexp(E2).
 aexp(mult(E1, E2)) :- aexp(E1), aexp(E2).
 aexp(sub(E1, E2)) :- aexp(E1), aexp(E2).
+aexp(iand(E1, E2)) :- aexp(E1), aexp(E2).
 
 % Boolean expressions
 bexp(true).
@@ -22,6 +23,7 @@ stm(assign(X, E)) :- atom(X), aexp(E).
 stm(if(B, stm1, stm2)) :- bexp(B), stm(stm1), stm(stm2). 
 stm(comp(s1, s2)) :- stm(s1) , stm(s2).
 stm(while(B,stm1)) :- bexp(B), stm(stm1).
+stm(do_while(stm1, B)) :- stm(stm1), bexp(B).
 
 % State operations
 lookup([(X, V)|_], X, V).
@@ -39,7 +41,8 @@ eval_aexp(var(X), State, V) :- lookup(State, X, V).
 % please complete eval_aexp
 eval_aexp(add(E1, E2), State, V) :- eval_aexp(E1, State, V1), eval_aexp(E2, State, V2), V is V1 + V2.          
 eval_aexp(mult(E1, E2), State, V) :- eval_aexp(E1, State, V1),  eval_aexp(E2, State, V2), V is V1 * V2.            
-eval_aexp(sub(E1, E2), State, V) :- eval_aexp(E1, State, V1), eval_aexp(E2, State, V2), V is V1 - V2.    
+eval_aexp(sub(E1, E2), State, V) :- eval_aexp(E1, State, V1), eval_aexp(E2, State, V2), V is V1 - V2.  
+eval_aexp(iand(E1, E2), State, V) :- eval_aexp(E1, State, V1), eval_aexp(E2, State, V2), V is V1 /\ V2.  
 
 % Boolean expression evaluation
 eval_bexp(true, _, true).
@@ -68,6 +71,11 @@ nos(if(B, Stm1, Stm2), State, NewState) :- eval_bexp(B, State, Result),
 nos(while(B, Stm1), State, NewState) :- eval_bexp(B, State, true), nos(Stm1, State, MidState),
     nos(while(B, Stm1), MidState, NewState). 
 nos(while(B, _), State, State) :- eval_bexp(B, State, false).
+
+nos(do_while(Stm1, B), State, NewState) :-
+    nos(Stm1, State, MidState), eval_bexp(B, MidState, Result),
+    (Result = true -> nos(do_while(Stm1, B), MidState, NewState) ; NewState = MidState).
+
 
 % test cases
 test1 :- 
@@ -105,6 +113,30 @@ test4 :-
     lookup(State, sum, Value),
     write('Sum 1 to 10 = '), write(Value), nl.
 
+% Test 5: GCD calculation using do-while
+test5 :-
+    Program = comp(assign(a, num(48)),
+              comp(assign(b, num(36)),
+                   do_while(
+                       if(gte(var(a), var(b)),
+                          assign(a, sub(var(a), var(b))),
+                          assign(b, sub(var(b), var(a)))),
+                       neg(aeq(var(a), num(0)))))),
+    nos(Program, [], State),
+    lookup(State, b, Value),
+    write('GCD of 48 and 36 = '), write(Value), nl.
+
+% Test 6: Count set bits in a number (bitcount of 7)
+test6 :-
+    Program = comp(assign(n, num(7)),
+              comp(assign(count, num(0)),
+                   while(neg(aeq(var(n), num(0))),
+                         comp(assign(count, add(var(count), 
+                                              iand(var(n), num(1)))),
+                              assign(n, sub(var(n), num(1))))))),
+    nos(Program, [], State),
+    lookup(State, count, Value),
+    write('Number of 1 bits in 7 = '), write(Value), nl.
 
 
 run_all_tests :-
@@ -112,5 +144,7 @@ run_all_tests :-
     test1,
     test2,
     test3,
-    test4.
+    test4,
+    test5,
+    test6.
     
